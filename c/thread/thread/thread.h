@@ -5,14 +5,6 @@
 extern "C" {
 #endif
 
-
-typedef union
-{
-	unsigned int windows;
-	void * linux;
-}routine_t;
-
-
 // os
 #ifndef WIN32
 	#define __WINDOWS__
@@ -28,24 +20,51 @@ typedef union
 	#include <process.h>
 	#include <Windows.h>
 #else
-
+	#include <pthread.h>
 #endif
 
 // type define
 #ifdef __WINDOWS__
-	typedef unsigned int routine_ret_type;
-	#define thread_func_call __stdcall
 	typedef HANDLE thread_t;
-	typedef void*(*thread_routine)(void *);
+	typedef HANDLE thread_mutex_t;
 #else
-	typedef void * thread_ret_type;
-#define thread_func_call
-	//typedef pthread_t thread_t;
+	typedef pthread_t thread_t;
+	typedef pthread_mutex_t thread_mutex_t;
 #endif
 
-
-
+// thread
+int thread_sleep(unsigned int msec);
 int thread_create(thread_t *thread, void *(*start_routine) (void *), void *arg, int stack_size);
+int thread_detach(thread_t thread);
+int thread_join(thread_t thread, void **retval);
+int thread_cancel(thread_t thread);
+void thread_exit(void *retval);
+
+// mutex
+int thread_mutex_init(thread_mutex_t *mutex);
+int thread_mutex_lock(thread_mutex_t *mutex);
+int thread_mutex_trylock(thread_mutex_t *mutex);
+int thread_mutex_unlock(thread_mutex_t *mutex);
+int thread_mutex_destroy(thread_mutex_t *mutex);
+
+// cond
+
+
+/*
+
+thread_attr_init（）：设置线程是否脱离属性
+thread_attr_destroy()
+int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate);
+int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *detachstate);
+thread_kill（）：给线程发送kill信号
+
+
+thread_cond_init（）：初始化条件变量
+thread_cond_signal（）：发送信号唤醒进程
+thread_cond_wait（）：等待条件变量的特殊事件发生
+thread_cond_destroy(&g_cond);
+
+*/
 
 #ifdef __cplusplus
 }
