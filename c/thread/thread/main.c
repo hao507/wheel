@@ -1,40 +1,35 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
-#include<string.h>
 #include<stdlib.h>
-#include<math.h>
-#include<time.h>
+#include<string.h>
 #include "thread.h"
-
-int num = 0;
 
 thread_mutex_t mutex;
 
-void* func(void *arg)
+void peixt(const char* einfo)
 {
-	int i = 0;
-	while (++i < 5)
-	{
-		printf("this is thread is running...\n");
-		Sleep(1000);
-	}
-
-	thread_exit(NULL);
-
-	return NULL;
+	printf("%s error, will be exit.\n", einfo);
+	perror("error info:");
+	thread_sleep(5000);
+	exit(1);
 }
 
-void* func2(void *arg)
+void* callback(void *arg)
 {
-	for (int i = 0; i < 100; i++)
-	{
-		thread_mutex_lock(mutex);
-		printf("func2 before:%d\n", num);
-		num = i;
-		printf("func2 after:%d\n", num);
-		thread_mutex_unlock(mutex);
-		thread_sleep(1000);
-	}
+	int ret = -1;
+
+	ret = thread_mutex_lock(&mutex);
+	if (ret != 0)
+		peixt("thread_mutex_lock--");
+
+	printf("I'm callback will sleep 5s\n");
+	thread_sleep(5000);
+
+	ret = thread_mutex_unlock(&mutex);
+	if (ret != 0)
+		peixt("thread_mutex_unlock");
+
+	printf("I'm callback will exit...\n");
 
 	return NULL;
 }
@@ -44,24 +39,54 @@ int main()
 	int ret;
 	ret = thread_mutex_init(&mutex);
 	if (ret != 0)
+		peixt("thread_mutex_init");
+
+	thread_t t;
+	ret = thread_create(&t, callback, NULL, 1024);
+	if (ret != 0)
+		peixt("thread_create");
+
+	ret = thread_detach(t);
+	if (ret != 0)
 	{
-		printf("mutex init error\n");
+		printf("thread_detach error:%s\n", strerror(ret));
 		return 1;
 	}
 
-	thread_t t;
-	thread_create(&t, func2, NULL, 1024);
+	//ret = thread_join(t, NULL);
+	//if (ret != 0)
+	//	peixt("thread_join");
 
-	for (int i = 100; i < 1000; i++)
+	thread_sleep(1000);
+
+	if (thread_mutex_trylock(&mutex) == 0)
 	{
-		thread_mutex_lock(mutex);
-		printf("main before:%d\n", num);
-		num = i;
-		printf("main after:%d\n", num);
-		thread_mutex_unlock(mutex);
+		printf("thread_mutex_trylock success\n");
+	}
+	else
+	{
+		printf("thread_mutex_trylock fail, try thread_mutex_lock\n");
+		printf("will be thread_cancel thread after 2s\n");
+		thread_sleep(2000);
+		ret = thread_cancel(t);
+		if (ret != 0)
+			peixt("thread_cancel");
+
+		thread_mutex_unlock(&mutex);
+		ret = thread_mutex_lock(&mutex);
+		if (ret != 0)
+			peixt("thread_mutex_lock");
+
+		printf("thread_mutex_lock success, I'm main, will sleep 1s\n");
 		thread_sleep(1000);
+
+		ret = thread_mutex_unlock(&mutex);
+		if (ret != 0)
+			peixt("thread_mutex_unlock");
 	}
 
-	system("pause");
-	return EXIT_SUCCESS;
+	printf("program finish, will sleep 5s exit.\n");
+	thread_sleep(5000);
+
+	return 0;
 }
