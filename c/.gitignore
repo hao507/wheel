@@ -1,4 +1,6 @@
 .vs
 Debug
 Release
-thread.sln
+x86
+x64
+*.sln
