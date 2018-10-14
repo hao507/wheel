@@ -50,6 +50,7 @@ void server()
 		if (len == 0 || len < 0)
 		{
 			printf("len = %d\n", len);
+			close(csock);
 			break;
 		}
 		for (int i = 0; i < len; i++)
@@ -89,6 +90,11 @@ void client()
 	{
 		memset(buf, 0, BUFSIZ);
 		scanf("%s",buf);
+		if (strncmp("exit", buf, 4) == 0)
+		{
+			close(sock);
+			break;
+		}
 		write(sock, buf, strlen(buf));
 		write(sock, "\n", strlen("\n"));
 		memset(buf, 0, BUFSIZ);

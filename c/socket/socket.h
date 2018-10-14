@@ -11,6 +11,7 @@ extern "C" {
 	#define __OS__ "windows"
 #else
 
+
 	#define __LINUX__
 	#define __OS__ "linux"
 #endif
