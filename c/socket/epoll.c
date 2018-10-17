@@ -1,15 +1,12 @@
 #include "epoll.h"
 
-#define NULL ((void*)0x0)
-
-
-
+// example event callback.
 int read_event(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
 		return EPOLL_ARGUMENT_ERROR;
 
-	int len;
+	int i, len;
 	char buf[1024] = { 0 };
 SIGNAL:
 	len = recv(node->fd, buf, 1024, 0);
@@ -24,22 +21,20 @@ SIGNAL:
 	}
 	if (len == 0)
 	{
-		close(node->fd);
 		epoll_del(epoll, node);
+		close(node->fd);
 	}
 
-	int i = 0;
-	
 	for (i = 0; i < len; i++)
 		if (buf[i] >= 'a' && buf[i] <= 'z')
 			buf[i] -= 'a' - 'A';
 
 	send(node->fd, buf, len, 0);
 
+	printf("%s\n", buf);
 
 	return EPOLL_SUCCESS;
 }
-
 int write_event(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
@@ -47,7 +42,6 @@ int write_event(epoll_t *epoll, epoll_node *node)
 
 	return EPOLL_SUCCESS;
 }
-
 int close_event(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
@@ -55,13 +49,12 @@ int close_event(epoll_t *epoll, epoll_node *node)
 
 	return EPOLL_SUCCESS;
 }
-
 int accept_event(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
 		return EPOLL_ARGUMENT_ERROR;
 
-	int cfd, i, ret;
+	int cfd;
 
 	struct sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
@@ -78,7 +71,7 @@ int accept_event(epoll_t *epoll, epoll_node *node)
 		return EPOLL_ACCEPT_ERROR;
 	}
 
-	epoll_node *lnode = epoll_get(epoll, LISTEN_NODE);
+	epoll_node *lnode = epoll_get(epoll, NOTYPE_CLIENT);
 	if (lnode == NULL)
 		return EPOLL_GET_ERROR;
 
@@ -98,7 +91,7 @@ int accept_event(epoll_t *epoll, epoll_node *node)
 	return EPOLL_SUCCESS;
 }
 
-
+// init epoll env, set listen num.
 epoll_t* epoll_init(int size)
 {
 	if (size <= 0)
@@ -112,7 +105,6 @@ epoll_t* epoll_init(int size)
 	if (epoll == NULL)
 	{
 		close(epfd);
-
 		return NULL;
 	}
 	
@@ -120,10 +112,7 @@ epoll_t* epoll_init(int size)
 	if (epoll->events == NULL)
 	{
 		close(epfd);
-
-		if (epoll != NULL)
-			free(epoll);
-
+		free(epoll);
 		return NULL;
 	}
 
@@ -131,13 +120,8 @@ epoll_t* epoll_init(int size)
 	if (epoll->lnodes == NULL)
 	{
 		close(epfd);
-
-		if (epoll != NULL)
-			free(epoll);
-
-		if (epoll->events != NULL)
-			free(epoll->events);
-
+		free(epoll);
+		free(epoll->events);
 		return NULL;
 	}
 
@@ -145,16 +129,9 @@ epoll_t* epoll_init(int size)
 	if (epoll->cnodes == NULL)
 	{
 		close(epfd);
-
-		if (epoll != NULL)
-			free(epoll);
-
-		if (epoll->events != NULL)
-			free(epoll->events);
-
-		if (epoll->lnodes != NULL)
-			free(epoll->lnodes);
-
+		free(epoll);
+		free(epoll->events);
+		free(epoll->lnodes);
 		return NULL;
 	}
 
@@ -167,7 +144,7 @@ epoll_t* epoll_init(int size)
 
 	return epoll;
 }
-
+// get a available node by type. 
 epoll_node * epoll_get(epoll_t * epoll, int notype)
 {
 	if (epoll == NULL)
@@ -176,15 +153,14 @@ epoll_node * epoll_get(epoll_t * epoll, int notype)
 	epoll_node *array = NULL;
 	switch (notype)
 	{
-	case LISTEN_NODE:
+	case NOTYPE_LISTEN:
 		array = epoll->lnodes;
 		break;
-	case CLIENT_NODE:
+	case NOTYPE_CLIENT:
 		array = epoll->cnodes;
 		break;
 	default:
 		return NULL;
-		break;
 	}
 
 	int i = 0;
@@ -197,54 +173,32 @@ epoll_node * epoll_get(epoll_t * epoll, int notype)
 
 	return &array[i];
 }
-
-// not use.
-int epoll_set(epoll_t *epoll, int notype, epoll_node *node)
+// set a node in epoll rbtree, don't need call epoll_add.
+int epoll_set(epoll_t *epoll, int notype,epoll_node node)
 {
-	if (epoll == NULL || node == NULL)
+	if (epoll == NULL)
 		return EPOLL_ARGUMENT_ERROR;
 
-	epoll_node *array = NULL;
+	epoll_node * n = epoll_get(epoll, notype);
+	if (epoll == NULL)
+		return EPOLL_GET_ERROR;
 
-	switch (notype)
-	{
-	case LISTEN_NODE:
-		array = epoll->lnodes;
-		break;
-	case CLIENT_NODE:
-		array = epoll->cnodes;
-		break;
-	default:
-		return EPOLL_ARGUMENT_ERROR;
-		break;
-	}
-
-	int i = 0;
-
-	for (i = 0; i < epoll->size; i++)
-		if (array[i].status != 0)
-			break;
-
-	if (i == epoll->size)
-		return EPOLL_OUTOFMAX_ERROR;
-
-	array[i] = *node;
+	*n = node;
 
 	return EPOLL_SUCCESS;
 }
-
+// add node in the epoll rbtree.
 int epoll_add(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
 		return EPOLL_ARGUMENT_ERROR;
 
-	struct epoll_event events = { 0 };
-
 	if (node->status != 0)
 		return EPOLL_REPEAT_EVENT;
 
-	events.data.ptr = node;
+	struct epoll_event events = { 0 };
 	events.events = node->events;
+	events.data.ptr = node;
 
 	if (epoll_ctl(epoll->epfd, EPOLL_CTL_ADD, node->fd, &events) != 0)
 		return EPOLL_ADD_ERROR;
@@ -253,13 +207,25 @@ int epoll_add(epoll_t *epoll, epoll_node *node)
 
 	return EPOLL_SUCCESS;
 }
-
+// change node event in the rbtree.
 int epoll_mod(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
 		return EPOLL_ARGUMENT_ERROR;
-}
 
+	if (node->status == 0)
+		return EPOLL_DELETED_EVENT;
+
+	struct epoll_event events = { 0 };
+	events.events = node->events;
+	events.data.ptr = node;
+
+	if (epoll_ctl(epoll->epfd, EPOLL_CTL_MOD, node->fd, &events) != 0)
+		return EPOLL_MOD_ERROR;
+
+	return EPOLL_SUCCESS;
+}
+// delete node from in rbtree.
 int epoll_del(epoll_t *epoll, epoll_node *node)
 {
 	if (epoll == NULL || node == NULL)
@@ -275,36 +241,40 @@ int epoll_del(epoll_t *epoll, epoll_node *node)
 
 	return EPOLL_SUCCESS;
 }
-
-int epoll_run(epoll_t *epoll)
+// epoll timeout run.
+int epoll_run(epoll_t *epoll, int timeout)
 {
 	if (epoll == NULL)
 		return EPOLL_ARGUMENT_ERROR;
 
-	int i, len;
+	int i, num;
 
 	while (1)
 	{
-		len = epoll_wait(epoll->epfd, epoll->events, epoll->size, -1);
-		if (len < 0)
+		num = epoll_wait(epoll->epfd, epoll->events, epoll->size, timeout);
+		if (num < 0)
 		{
+			// signal to interrupt or non-block retutn.
 			if (errno == EINTR || errno == EAGAIN)
 				continue;
 			
 			return EPOLL_WAIT_ERROR;
 		}
-		printf("have events\n");
-		for (i = 0; i < len; i++)
+		for (i = 0; i < num; i++)
 		{
 			epoll_node *node = epoll->events[i].data.ptr;
-			node->event_call(epoll, node);
+			if (node->event_call != NULL)
+				node->event_call(epoll, node);
+			else
+				if (epoll_del(epoll, node) != 0);
+				// TODO epoll node delete fail.
+
 		}
 	}
-	
 
 	return EPOLL_SUCCESS;
 }
-
+// epoll env destroy.
 int epoll_destroy(epoll_t *epoll)
 {
 	if (epoll == NULL)
