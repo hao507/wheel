@@ -6,6 +6,8 @@
 #include <time.h>
 #include "epoll.h"
 
+#ifdef __SUPPORT_EPOLL__
+
 void pexit(const char *err)
 {
 	printf("error: %s\n", err);
@@ -54,3 +56,5 @@ int main()
 	system("pause");
 	return EXIT_SUCCESS;
 }
+
+#endif // __SUPPORT_EPOLL__

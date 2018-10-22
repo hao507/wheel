@@ -1,5 +1,8 @@
 #include "epoll.h"
 
+
+#ifdef __SUPPORT_EPOLL__
+
 // example event callback.
 int read_event(epoll_t *epoll, epoll_node *node)
 {
@@ -299,3 +302,5 @@ int epoll_destroy(epoll_t *epoll)
 
 	return EPOLL_SUCCESS;
 }
+
+#endif // __SUPPORT_EPOLL__

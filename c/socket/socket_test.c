@@ -20,8 +20,9 @@ void server()
 	if (ret != 0)
 		pexit("socket_init");
 
-	socket_t sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock < 0)
+	socket_t sock;
+	ret = socket_create(&sock, AF_INET, SOCK_STREAM, 0);
+	if (ret < 0)
 		pexit("socket");
 
 	struct sockaddr_in addr;
@@ -29,17 +30,19 @@ void server()
 	addr.sin_port = htons(8888);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	ret = bind(sock, (struct sockaddr*)&addr, sizeof(addr));
+	ret = socket_bind(sock, (struct sockaddr*)&addr, sizeof(addr));
 	if (ret != 0)
 		pexit("bind");
 
-	ret = listen(sock, 128);
+	ret = socket_listen(sock, 128);
 	if (ret != 0)
 		pexit("listen");
 
-	socket_t csock = accept(sock, NULL, NULL);
-	if (csock < 0)
+	socket_t csock;
+	ret = socket_accept(&csock, sock, NULL, NULL);
+	if (ret < 0)
 		pexit("socket");
+	
 
 	char buf[BUFSIZ] = { 0 };
 
@@ -63,6 +66,8 @@ void server()
 		printf("%s", buf);
 		write(csock, buf, len);
 	}
+
+	socket_destroy();
 }
 
 void client()
@@ -105,6 +110,6 @@ void client()
 
 int main()
 {
-	server();
-	//client();
+	//server();
+	client();
 }

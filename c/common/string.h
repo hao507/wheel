@@ -1,4 +1,6 @@
+char *strtok(char *str, const char *delim);
 
+char *strtok_r(char *str, const char *delim, char **saveptr);
 char *strpbrk(const char *s, const char *accept);
 char *strdup(const char *s);
 

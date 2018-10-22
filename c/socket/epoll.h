@@ -15,6 +15,8 @@ extern "C" {
 #define __OS__ "linux"
 #endif
 
+#ifdef __SUPPORT_EPOLL__
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,20 +56,21 @@ enum EPOLL_ERROR
 typedef struct epoll_t epoll_t;
 typedef struct epoll_node
 {
-	int		fd;
-	int		events;
-	int		status;
-	void	*user;
-	long	last_active;
-	int		(*event_call)(struct epoll_t *epoll, struct epoll_node *node);
+	int		fd;				// file descriptor
+	int		events;			// listen events
+	int		status;			// node status:true is on the tree, false is not on the tree.
+	void	*user;			// user generic pointer
+	long	last_active;	// last active time.
+							// have event, callback function.
+	int(*event_call)(struct epoll_t *epoll, struct epoll_node *node);
 }epoll_node;
 typedef struct epoll_t
 {
-	int					epfd;
-	int					size;
-	epoll_node			*lnodes;
-	epoll_node			*cnodes;
-	struct epoll_event	*events;
+	int					epfd;		// epoll fd.
+	int					size;		// listen node num.
+	epoll_node			*lnodes;	// listen node array.
+	epoll_node			*cnodes;	// client node array.
+	struct epoll_event	*events;	// listen return event array.
 }epoll_t;
 
 // example event callback.
@@ -92,6 +95,9 @@ int epoll_del(epoll_t *epoll, epoll_node *node);
 int epoll_run(epoll_t *epoll, int timeout);
 // epoll env destroy.
 int epoll_destroy(epoll_t *epoll);
+
+#endif // __SUPPORT_EPOLL__
+
 
 #ifdef __cplusplus
 }
