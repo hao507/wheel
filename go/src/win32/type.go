@@ -1,4 +1,4 @@
-package windowsAPI
+package win32
 
 // windows type define
 type DWORD		uint32
@@ -36,32 +36,33 @@ type LPCWSTR	*WCHAR
 const TRUE		= 1
 const FALSE	= 0
 
+type Handle uintptr
 
-
+const InvalidHandle = ^Handle(0)
 
 type SECURITY_ATTRIBUTES struct {
-	nLength					DWORD
-	lpSecurityDescriptor	LPVOID
-	bInheritHandle			BOOL
+	nLength					uint32
+	lpSecurityDescriptor	uintptr
+	bInheritHandle			int32
 }
 type PSECURITY_ATTRIBUTES *SECURITY_ATTRIBUTES
 type LPSECURITY_ATTRIBUTES *SECURITY_ATTRIBUTES
 
 
 type COORD struct {
-	X			SHORT
-	Y			SHORT
+	X			int16
+	Y			int16
 }
 type SMALL_RECT struct {
-	Left		SHORT
-	Top			SHORT
-	Right		SHORT
-	Bottom		SHORT
+	Left		int16
+	Top			int16
+	Right		int16
+	Bottom		int16
 }
 type CONSOLE_SCREEN_BUFFER_INFO struct {
 	dwSize					COORD
 	dwCursorPosition		COORD
-	wAttributes				WORD
+	wAttributes				uint16
 	srWindow				SMALL_RECT
 	dwMaximumWindowSize		COORD
 }
