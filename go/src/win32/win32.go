@@ -2,7 +2,6 @@ package win32
 
 import (
 	"unsafe"
-	"syscall"
 )
 
 // windows api return success error info.
@@ -13,9 +12,11 @@ func GetVersion() (uint32, error) {
 	return uint32(ret), err
 }
 
-func GetLastError() (error) {
-	_,_,err := procGetLastError.Call()
-	return err
+// TODO: have buf, need debug.
+func GetLastError() (uint32, error) {
+	ret,_,err := procGetLastError.Call()
+
+	return uint32(ret), err
 }
 
 func GetStdHandle(stdhandle int) (handle Handle, err error) {
@@ -81,10 +82,79 @@ func GetProcAddress(hModule Handle, lpProcName string) (uintptr, error) {
 	return ret, err
 }
 
-func FormatMessageW() {
-	syscall.FormatMessage()
+// TODO: need debug test.
+func FormatMessageW(dwFlags uint32,
+	lpSource uintptr,
+	dwMessageId uint32,
+	dwLanguageId uint32,
+	lpBuffer *uint16,
+	nSize uint32,
+	Arguments *byte) (uint32, error) {
+
+		ret,_,err := procFormatMessageW.Call(uintptr(dwFlags),
+			lpSource,
+			uintptr(dwMessageId),
+			uintptr(dwLanguageId),
+			uintptr(unsafe.Pointer(lpBuffer)),
+			uintptr(nSize),
+			uintptr(unsafe.Pointer(Arguments)),
+		)
+
+	return uint32(ret), err
 }
 
-func ExitProcess() {
+func ExitProcess(uExitCode uint32) error {
+	_,_,err := procExitProcess.Call(uintptr(uExitCode))
 
+	return err
+}
+
+func GlobalMemoryStatusEx(lpBuffer LPMEMORYSTATUSEX) (bool, error) {
+	ret,_,err := procGlobalMemoryStatusEx.Call(uintptr(unsafe.Pointer(lpBuffer)))
+
+	return ret != 0, err
+}
+
+func GetDiskFreeSpaceExA(lpDirectoryName *byte,
+	lpFreeBytesAvailableToCaller PULARGE_INTEGER,
+	lpTotalNumberOfBytes PULARGE_INTEGER,
+	lpTotalNumberOfFreeBytes PULARGE_INTEGER) (bool, error) {
+	ret,_,err := procGetDiskFreeSpaceExA.Call(uintptr(unsafe.Pointer(lpDirectoryName)),
+		uintptr(unsafe.Pointer(lpFreeBytesAvailableToCaller)),
+		uintptr(unsafe.Pointer(lpTotalNumberOfBytes)),
+		uintptr(unsafe.Pointer(lpTotalNumberOfFreeBytes)))
+
+	return ret != 0, err
+}
+
+func GetSystemTimes(lpIdleTime PFILETIME, lpKernelTime PFILETIME, lpUserTime PFILETIME) (bool, error) {
+	ret,_,err := procGetSystemTimes.Call(uintptr(unsafe.Pointer(lpIdleTime)), uintptr(unsafe.Pointer(lpKernelTime)), uintptr(unsafe.Pointer(lpUserTime)))
+
+	return ret != 0, err
+}
+
+func GetLogicalDriveStringsA(nBufferLength uint32, lpBuffer *byte) (uint32, error) {
+	ret,_,err := procGetLogicalDriveStringsA.Call(uintptr(nBufferLength), uintptr(unsafe.Pointer(lpBuffer)))
+
+	return uint32(ret), err
+}
+
+func GetVolumeInformationA(lpRootPathName *byte,
+	lpVolumeNameBuffer *byte,
+	nVolumeNameSize uint32,
+	lpVolumeSerialNumber *uint32,
+	lpMaximumComponentLength *uint32,
+	lpFileSystemFlags *uint32,
+	lpFileSystemNameBuffer *byte,
+	nFileSystemNameSize uint32) (bool, error) {
+		ret,_,err := procGetVolumeInformationA.Call(uintptr(unsafe.Pointer(lpRootPathName)),
+			uintptr(unsafe.Pointer(lpVolumeNameBuffer)),
+			uintptr(nVolumeNameSize),
+			uintptr(unsafe.Pointer(lpVolumeSerialNumber)),
+			uintptr(unsafe.Pointer(lpMaximumComponentLength)),
+			uintptr(unsafe.Pointer(lpFileSystemFlags)),
+			uintptr(unsafe.Pointer(lpFileSystemNameBuffer)),
+			uintptr(nFileSystemNameSize))
+
+		return ret != 0, err
 }

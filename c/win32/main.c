@@ -5,17 +5,15 @@
 #include<math.h>
 #include<time.h>
 #include <Windows.h>
-#include <WinSock2.h>
-
-void test()
-{
-	printf("exit ....\n");
-}
 
 int main()
 {
-	atexit(test);
-
+	HANDLE h = GetStdHandle(100);
+	if (h == INVALID_HANDLE_VALUE)
+	{
+		DWORD err = GetLastError();
+		printf("err:%d\n", err);
+	}
 
 	system("pause");
 	return EXIT_SUCCESS;
