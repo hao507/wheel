@@ -10,6 +10,10 @@ type CHAR		byte
 type LONG		int32
 type SHORT		int16
 type INT		int
+type DWORD64	uint64
+type ULONG64	uint64
+type ULONGLONG	uint64
+type DWORDLONG	ULONGLONG
 
 type PFLOAT		*FLOAT
 type PBOOL		*BOOL
@@ -35,6 +39,7 @@ type LPCWSTR	*WCHAR
 
 const TRUE		= 1
 const FALSE	= 0
+const NULL		= 0
 
 type Handle uintptr
 
@@ -60,14 +65,43 @@ type SMALL_RECT struct {
 	Bottom		int16
 }
 type CONSOLE_SCREEN_BUFFER_INFO struct {
-	dwSize					COORD
-	dwCursorPosition		COORD
-	wAttributes				uint16
-	srWindow				SMALL_RECT
-	dwMaximumWindowSize		COORD
+	DwSize					COORD
+	DwCursorPosition		COORD
+	WAttributes				uint16
+	SrWindow				SMALL_RECT
+	DwMaximumWindowSize		COORD
 }
 type PCONSOLE_SCREEN_BUFFER_INFO *CONSOLE_SCREEN_BUFFER_INFO
 
+
+type  MEMORYSTATUSEX struct {
+	DwLength					uint32
+	DwMemoryLoad				uint32
+	UllTotalPhys				uint64
+	UllAvailPhys				uint64
+	UllTotalPageFile			uint64
+	UllAvailPageFile			uint64
+	UllTotalVirtual				uint64
+	UllAvailVirtual				uint64
+	UllAvailExtendedVirtual		uint64
+}
+type LPMEMORYSTATUSEX *MEMORYSTATUSEX
+
+type ULARGE_INTEGER struct {
+	U struct{
+		LowPart		uint32
+		HighPart	uint32
+	}
+	QuadPart		uint64
+}
+type PULARGE_INTEGER *ULARGE_INTEGER
+
+type FILETIME struct {
+	DwLowDateTime	uint32
+	DwHighDateTime	uint32
+}
+type PFILETIME *FILETIME
+type LPFILETIME *FILETIME
 
 func typeToBool(b BOOL) bool {
 	if b != 0 {

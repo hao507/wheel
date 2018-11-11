@@ -3,7 +3,7 @@ package win32
 import (
 	"syscall"
 	"unicode/utf16"
-	"errors"
+
 )
 
 var (
@@ -167,6 +167,11 @@ var (
 	procLoadLibraryW                       = modkernel32.NewProcedure("LoadLibraryW")
 	procFreeLibrary                        = modkernel32.NewProcedure("FreeLibrary")
 	procGetProcAddress                     = modkernel32.NewProcedure("GetProcAddress")
+	procGlobalMemoryStatusEx               = modkernel32.NewProcedure("GlobalMemoryStatusEx")
+	procGetDiskFreeSpaceExA                = modkernel32.NewProcedure("GetDiskFreeSpaceExA")
+	procGetSystemTimes                     = modkernel32.NewProcedure("GetSystemTimes")
+	procGetLogicalDriveStringsA            = modkernel32.NewProcedure("GetLogicalDriveStringsA")
+	procGetVolumeInformationA              = modkernel32.NewProcedure("GetVolumeInformationA")
 	procFormatMessageW                     = modkernel32.NewProcedure("FormatMessageW")
 	procExitProcess                        = modkernel32.NewProcedure("ExitProcess")
 )
@@ -187,19 +192,16 @@ func (d *LazyDLL) NewProcedure(name string) *LazyProc {
 	return &LazyProc{*d.NewProc(name)}
 }
 
-func (p *LazyProc) Call(a ...uintptr) (r1, r2 uintptr, lastErr error) {
-	p.mustFind()
+func (p *LazyProc) Call(a ...uintptr) (r1, r2 uintptr, err error) {
+	err = p.Find()
+	if err != nil {
+		return uintptr(0), uintptr(0), err
+	}
+
 	return p.syscall(a...)
 }
 
-func (p *LazyProc) mustFind() {
-	e := p.Find()
-	if e != nil {
-		panic(e)
-	}
-}
-
-func (p *LazyProc) syscall(a ...uintptr) (r1, r2 uintptr, lastErr error) {
+func (p *LazyProc) syscall(a ...uintptr) (r1, r2 uintptr, err syscall.Errno) {
 	switch len(a) {
 	case 0:
 		return syscall.Syscall(p.Addr(), uintptr(len(a)), 0, 0, 0)
@@ -263,7 +265,7 @@ func uitoa(val uint) string {
 func UTF16PtrFromString(s string) (*uint16, error) {
 	a, err := UTF16FromString(s)
 	if err != nil {
-		return nil, EINVAL
+		return nil, nil
 	}
 	return &a[0], nil
 }
@@ -274,7 +276,7 @@ func UTF16PtrFromString(s string) (*uint16, error) {
 func UTF16FromString(s string) ([]uint16, error) {
 	for i := 0; i < len(s); i++ {
 		if s[i] == 0 {
-			return nil, errors.New("invalid argument")
+			return nil, nil
 		}
 	}
 	return utf16.Encode([]rune(s + "\x00")), nil
@@ -297,7 +299,7 @@ func BytePtrFromString(s string) (*byte, error) {
 func ByteSliceFromString(s string) ([]byte, error) {
 	for i := 0; i < len(s); i++ {
 		if s[i] == 0 {
-			return nil, errors.New("invalid argument")
+			return nil, nil
 		}
 	}
 	a := make([]byte, len(s)+1)

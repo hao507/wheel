@@ -1,5 +1,21 @@
+<<<<<<< HEAD
 ﻿#ifndef __SM_BIOS_H__
 #define __SM_BIOS_H__
+=======
+#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<math.h>
+#include<time.h>
+#include <Windows.h>
+#include <WinSock2.h>
+
+void test()
+{
+	printf("exit ....\n");
+}
+>>>>>>> a7f1d1762da8bab763177fc9fc8d3f66dffe648f
 
 #define TRUE 1
 #define FALSE 0
@@ -229,6 +245,7 @@ typedef struct
 
 typedef struct
 {
+<<<<<<< HEAD
 	SMBStructsHeader Header;
 	BYTE		DeviceType;
 	BYTE		DescriptionStr;
@@ -264,6 +281,9 @@ BYTE *GenPortType(BYTE value);
 BYTE *GenDeviceType(BYTE value);
 
 WORD CalCacheSize(WORD value);
+=======
+	atexit(test);
+>>>>>>> a7f1d1762da8bab763177fc9fc8d3f66dffe648f
 
 DWORD *GetSupportedTypeHandles(DWORD TableAddress, WORD StructCount);
 void ShowInfo(DWORD *types, WORD StructCount);
