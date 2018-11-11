@@ -2,8 +2,7 @@ package win32
 
 import (
 	"unsafe"
-	"syscall"
-)
+	)
 
 // windows api return success error info.
 const Success = "The operation completed successfully."
@@ -82,9 +81,10 @@ func GetProcAddress(hModule Handle, lpProcName string) (uintptr, error) {
 }
 
 func FormatMessageW() {
-	syscall.FormatMessage()
+	//syscall.FormatMessage()
 }
 
 func ExitProcess() {
 
 }
+

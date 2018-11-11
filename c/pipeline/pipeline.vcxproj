@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{1795114C-F588-4346-84C5-22E6E10D3913}</ProjectGuid>
-    <RootNamespace>process</RootNamespace>
+    <ProjectGuid>{2DAC0019-5FFB-47B2-87AF-D2CE602EA9F5}</ProjectGuid>
+    <RootNamespace>pipeline</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -115,7 +115,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
+    <ClInclude Include="errors.h" />
+    <ClInclude Include="init.h" />
+    <ClInclude Include="report.h" />
+    <ClInclude Include="stream.h" />
+    <ClInclude Include="worker.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="errors.c" />
+    <ClCompile Include="init.c" />
+    <ClCompile Include="report.c" />
+    <ClCompile Include="socket.c" />
+    <ClCompile Include="test_process.c" />
+    <ClCompile Include="test_source.c" />
+    <ClCompile Include="stream.c" />
+    <ClCompile Include="test_target.c" />
+    <ClCompile Include="worker.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
