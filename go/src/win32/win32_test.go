@@ -9,48 +9,6 @@ import (
 	"unsafe"
 )
 
-func TestGetVersion(t *testing.T) {
-	if v,err := GetVersion(); v == NULL {
-		panic(err)
-	} else {
-		fmt.Println(fmt.Sprintf("windows version: %d.%d (%d)", byte(v), uint8(v>>8), v>>16))
-	}
-}
-
-// TODO have some bug.
-func TestGetLastError(t *testing.T) {
-	h,err := GetStdHandle(-100)
-	if h == InvalidHandle {
-		errno,_ := GetLastError()
-		fmt.Println(errno)
-		fmt.Println(err)
-	}
-
-
-
-}
-
-// test get standard handle
-func TestGetStdHandle(t *testing.T) {
-	h,err := GetStdHandle(syscall.STD_OUTPUT_HANDLE)
-	if h == NULL {
-		fmt.Println("error: ", err.Error())
-	}
-	fmt.Println("handle:", h)
-}
-
-func TestCloseHandle(t *testing.T) {
-	h,err := GetStdHandle(STD_ERROR_HANDLE)
-	if h == NULL {
-		fmt.Println("error: ", err.Error())
-	}
-
-	if ok,err := CloseHandle(h); ok {
-		fmt.Println("close handle is success.")
-	} else {
-		fmt.Println("error: ", err.Error())
-	}
-}
 
 // test mutex
 func TestCreateMutexW(t *testing.T) {
@@ -60,7 +18,7 @@ func TestCreateMutexW(t *testing.T) {
 	}
 
 	go func () {
-		syscall.WaitForSingleObject(syscall.Handle(h), INFINITE)
+		syscall.WaitForSingleObject(syscall.Handle(h), syscall.INFINITE)
 		for i := 1; i < 10; i++ {
 			fmt.Println("I'm go run :", i)
 		}

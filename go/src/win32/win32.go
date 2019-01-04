@@ -2,119 +2,36 @@ package win32
 
 import (
 	"unsafe"
-<<<<<<< HEAD
-	)
-=======
+	"syscall"
 )
->>>>>>> a7f1d1762da8bab763177fc9fc8d3f66dffe648f
 
 // windows api return success error info.
 const Success = "The operation completed successfully."
 
-func GetVersion() (uint32, error) {
-	ret,_,err := procGetVersion.Call()
-	return uint32(ret), err
+func GetLastError() (int, error) {
+	err := syscall.GetLastError()
+
+	return int(*err.(*syscall.Errno)), err
 }
 
-// TODO: have buf, need debug.
-func GetLastError() (uint32, error) {
-	ret,_,err := procGetLastError.Call()
-
-	return uint32(ret), err
-}
-
-func GetStdHandle(stdhandle int) (handle Handle, err error) {
-	ret,_,err := procGetStdHandle.Call(uintptr(stdhandle))
-	return Handle(ret), err
-}
-
-func CloseHandle(handle Handle) (bool, error) {
-	ret,_,err := procCloseHandle.Call(uintptr(handle))
-	return ret != 0, err
-}
-
-func CreateMutexW(lpMutexAttributes LPSECURITY_ATTRIBUTES, bInitialOwner bool, lpName LPCWSTR) (Handle, error) {
+func CreateMutexW(lpMutexAttributes LPSECURITY_ATTRIBUTES, bInitialOwner bool, lpName LPCWSTR) (syscall.Handle, error) {
 	ret,_,err := procCreateMutexW.Call(uintptr(unsafe.Pointer(lpMutexAttributes)), uintptr(typeToBOOL(bInitialOwner)), uintptr(unsafe.Pointer(lpName)))
-	return Handle(ret), err
+	return syscall.Handle(ret), err
 }
 
-func ReleaseMutex(hMutex Handle) (bool, error) {
+func ReleaseMutex(hMutex syscall.Handle) (bool, error) {
 	ret,_,err := procReleaseMutex.Call(uintptr(hMutex))
 	return ret != 0, err
 }
 
-func WaitForSingleObject(hHandle Handle, dwMilliseconds uint32) (uint32, error) {
-	ret,_,err := procWaitForSingleObject.Call(uintptr(hHandle), uintptr(dwMilliseconds))
-	return uint32(ret), err
-}
-
-func GetConsoleScreenBufferInfo(hConsoleOutput Handle, lpConsoleScreenBufferInfo PCONSOLE_SCREEN_BUFFER_INFO) (bool, error) {
+func GetConsoleScreenBufferInfo(hConsoleOutput syscall.Handle, lpConsoleScreenBufferInfo PCONSOLE_SCREEN_BUFFER_INFO) (bool, error) {
 	ret,_,err := procGetConsoleScreenBufferInfo.Call(uintptr(hConsoleOutput), uintptr(unsafe.Pointer(lpConsoleScreenBufferInfo)))
 	return ret != 0, err
 }
 
-func SetConsoleTextAttribute(hConsoleOutput Handle, wAttributes uint16) (bool, error) {
+func SetConsoleTextAttribute(hConsoleOutput syscall.Handle, wAttributes uint16) (bool, error) {
 	ret,_,err := procSetConsoleTextAttribute.Call(uintptr(hConsoleOutput), uintptr(wAttributes))
 	return ret != 0, err
-}
-
-func LoadLibraryW(lpLibFileName string) (Handle, error) {
-	var libName *uint16
-	libName, err := UTF16PtrFromString(lpLibFileName)
-	if err != nil {
-		return Handle(0), err
-	}
-
-	ret,_,err := procLoadLibraryW.Call(uintptr(unsafe.Pointer(libName)))
-
-	return Handle(ret), err
-}
-
-func FreeLibrary(handle Handle) (bool, error) {
-	ret,_,err := procFreeLibrary.Call(uintptr(handle))
-	return ret != 0, err
-}
-
-func GetProcAddress(hModule Handle, lpProcName string) (uintptr, error) {
-	var procname *byte
-	procname, err := BytePtrFromString(lpProcName)
-	if err != nil {
-		return uintptr(0), err
-	}
-	ret,_,err := procGetProcAddress.Call(uintptr(hModule), uintptr(unsafe.Pointer(procname)))
-
-	return ret, err
-}
-
-<<<<<<< HEAD
-func FormatMessageW() {
-	//syscall.FormatMessage()
-=======
-// TODO: need debug test.
-func FormatMessageW(dwFlags uint32,
-	lpSource uintptr,
-	dwMessageId uint32,
-	dwLanguageId uint32,
-	lpBuffer *uint16,
-	nSize uint32,
-	Arguments *byte) (uint32, error) {
-
-		ret,_,err := procFormatMessageW.Call(uintptr(dwFlags),
-			lpSource,
-			uintptr(dwMessageId),
-			uintptr(dwLanguageId),
-			uintptr(unsafe.Pointer(lpBuffer)),
-			uintptr(nSize),
-			uintptr(unsafe.Pointer(Arguments)),
-		)
-
-	return uint32(ret), err
-}
-
-func ExitProcess(uExitCode uint32) error {
-	_,_,err := procExitProcess.Call(uintptr(uExitCode))
-
-	return err
 }
 
 func GlobalMemoryStatusEx(lpBuffer LPMEMORYSTATUSEX) (bool, error) {
@@ -139,7 +56,6 @@ func GetSystemTimes(lpIdleTime PFILETIME, lpKernelTime PFILETIME, lpUserTime PFI
 	ret,_,err := procGetSystemTimes.Call(uintptr(unsafe.Pointer(lpIdleTime)), uintptr(unsafe.Pointer(lpKernelTime)), uintptr(unsafe.Pointer(lpUserTime)))
 
 	return ret != 0, err
->>>>>>> a7f1d1762da8bab763177fc9fc8d3f66dffe648f
 }
 
 func GetLogicalDriveStringsA(nBufferLength uint32, lpBuffer *byte) (uint32, error) {
@@ -148,10 +64,6 @@ func GetLogicalDriveStringsA(nBufferLength uint32, lpBuffer *byte) (uint32, erro
 	return uint32(ret), err
 }
 
-<<<<<<< HEAD
-}
-
-=======
 func GetVolumeInformationA(lpRootPathName *byte,
 	lpVolumeNameBuffer *byte,
 	nVolumeNameSize uint32,
@@ -171,4 +83,3 @@ func GetVolumeInformationA(lpRootPathName *byte,
 
 		return ret != 0, err
 }
->>>>>>> a7f1d1762da8bab763177fc9fc8d3f66dffe648f
